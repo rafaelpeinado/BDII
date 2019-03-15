@@ -14,13 +14,14 @@ CREATE TABLE tblcidade (
 ) ENGINE = MyISAM CHARACTER SET = utf8;
 
 CREATE TABLE tblcep (
+  -- fazer pk autoincrement e criar strCep
   pkCep 			CHAR(8) NOT NULL PRIMARY KEY,
   strLogradouro 	VARCHAR(150) NOT NULL,
   strBairro 		VARCHAR(80) NOT NULL
 ) ENGINE = MyISAM CHARACTER SET = utf8;
 
 
-CREATE TABLE relEstadoCidade (
+CREATE TABLE relestadocidade (
   pkEstadoCidade 	INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
   fkEstado 			INTEGER NOT NULL,
   fkCidade 			INTEGER NOT NULL,
@@ -29,7 +30,7 @@ CREATE TABLE relEstadoCidade (
   UNIQUE(fkCidade)
 ) ENGINE = MyISAM;
 
-CREATE TABLE relCidadeCep (
+CREATE TABLE relcidadecep (
   pkCidadeCep 	INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
   fkCep 		CHAR(8) NOT NULL,
   fkCidade 		INTEGER NOT NULL,
@@ -38,7 +39,7 @@ CREATE TABLE relCidadeCep (
   UNIQUE(fkCep)
 ) ENGINE = MyISAM;
 
-CREATE TABLE relEstadoCep (
+CREATE TABLE relestadocep (
   pkEstadoCep 	INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
   fkEstado 		INTEGER NOT NULL,
   fkCep 		CHAR(8) NOT NULL,
@@ -55,7 +56,15 @@ ALTER TABLE tblcidade DROP COLUMN dcCreated;
 
 
 -- IMPORTAR DADOS
-LOAD DATA INFILE "D://ARQUIVOS DOS ALUNOS//RAFAEL//07032019//cepaberto_XLupMw9//estados.cepaberto//states.csv" INTO TABLE tblestado FIELDS TERMINATED BY ','
+LOAD DATA INFILE "C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/states.csv" INTO TABLE tblestado FIELDS TERMINATED BY ',' (pkEstado, strNome, strSigla);
+LOAD DATA INFILE "C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/cities.csv" INTO TABLE tblcidade FIELDS TERMINATED BY ',' (pkCidade, strNome);
+LOAD DATA INFILE "C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/sp.cepaberto_parte_4.csv" INTO TABLE tblcep FIELDS TERMINATED BY ',' (pkCep, strLogradouro, strBairro);
+
+LOAD DATA INFILE "C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/cities.csv" INTO TABLE relestadocidade FIELDS TERMINATED BY ',' (fkCidade, @dummy, fkEstado);
+LOAD DATA INFILE "C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/sp.cepaberto_parte_4.csv" INTO TABLE relcidadecep FIELDS TERMINATED BY ',' (fkCep, @dummy, @dummy2, fkCidade, @dummy3);
+LOAD DATA INFILE "C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/sp.cepaberto_parte_4.csv" INTO TABLE relestadocep FIELDS TERMINATED BY ',' (fkCep, @dummy, @dummy2, @dummy3, fkEstado);
+-- após mudanças
+-- LOAD DATA INFILE "C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/sp.cepaberto_parte_4.csv" INTO TABLE relestadocep FIELDS TERMINATED BY ',' ENCLOSED BY '"' (@cep, @dummy, @dummy2, @dummy3, fkEstado) SET fkCep = (SELECT pkCep FROM tblcep WHERE strCEP = @cep);
 
 -- quando o sistema for fechado a modelagem entidade relacionamento sempre terá problemas 
 
@@ -66,3 +75,12 @@ LOAD DATA INFILE "D://ARQUIVOS DOS ALUNOS//RAFAEL//07032019//cepaberto_XLupMw9//
 --- e se começar com aspas, colocar mais aspas Ex: ""eu, você, nós""
 
 -- mysql dump
+
+select c.pkCep, c.strLogradouro, c.strBairro, ci.strNome, e.strNome, e.strSigla from tblcep c, tblcidade ci, tblestado e, relcidadecep rcc, relestadocep rec, relestadocidade reci
+where  rcc.fkCep = c.pkCep
+and rcc.fkCidade = ci.pkCidade
+and rec.fkCep = pkCep
+and rec.fkEstado = pkEstado
+and reci.fkCidade = pkCidade
+and reci.fkEstado = pkEstado
+and pkCep = 13271603;
