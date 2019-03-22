@@ -1,0 +1,27 @@
+UUID - Universally Unique Identifier
+
+SELECT UUID();
+
+SELECT LENGTH(UUID());
+SELECT LENGTH(REPLACE(UUID(), '-', ''));
+SELECT REPLACE(UUID(), '-', '');
+
+SELECT UNHEX(REPLACE(UUID(), '-', ''));
+
+SELECET LENGTH(UNHEX(REPLACE(UUID(), '-', '')));
+
+
+
+
+Stored Procedures
+entidade - 4 procedimentos (CRUD)
+
+Banco de Dados - qualidade nas transações - Atomicidade, Consistência, Isolamento, Durabilidade
+
+PROCEDURE COM TRANSATION
+
+CREATE PROCEDURE prCadastrarDocente (OUT varProntuario VARCHAR(9), varNome, varEscolaridaden, varNascimento INT)
+  BEGIN
+    INSERT INTO tbldocente (upkDocente, strProntuario, strNome, strEscolaridade, strNascimento)
+    VALUES 
+  END//
