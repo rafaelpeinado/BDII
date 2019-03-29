@@ -103,13 +103,24 @@ UPDATE tblproprietario SET dcModified = NULL;
 UPDATE tblproprietario SET strNome = 'RIVALDO DA SIVLA' WHERE pkProprietario = 3;
 
 
-CRAETE TABLE tblnome(
+CREATE TABLE tblnome(
 upkNome BINARY(16) NOT NULL PRIMARY KEY,
 dcCreated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-dcModified DATETIME NULL DEFAULT NULL ON UDATE CURRENT_TIMESTAMP
+dcModified DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE = InnoDB  CHARACTER SET = utf8;
 
 CREATE FUNCTION fnNovaChave() RETURNS BINARY(16) DETERMINISTIC
    RETURN UNHEX(REPLACE(UUID(), '-', ''));
 
-INSERT INTO tblnome (upkNome,...) VALUES (fnNovaChave(), ...);
+DELIMITER //
+CREATE PROCEDURE prCadastrarDocente (OUT varProntuario VARCHAR(9), varNome VARCHAR(50), varEscolaridade VARCHAR(200), varNascimento DATE)
+	 BEGIN
+		 START TRANSACTION; -- se tiver só uma query, é preciosismo
+			 INSERT INTO tbldocente(pkDocente, strProntuario, strNome, strEscolaridade, dtNascimento) VALUES (fnNovaChave(), varProntuario, varNome, varEscolaridade, varNascimento);
+			 COMMIT;
+	 END//
+DELIMITER;
+
+CALL prCadastrarDocente ("SP1234567", "ANA MARIA BRAGA", "SUPERIOR", "1923-10-12");
+
+-- INSERT INTO tblnome (upkNome,...) VALUES (fnNovaChave(), ...);
