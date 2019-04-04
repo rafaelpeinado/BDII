@@ -1,6 +1,6 @@
-CREATE DATABASE dbModelo;
+CREATE DATABASE dbEscola;
 
-USE dbModelo;
+USE dbEscola;
 
 CREATE TABLE tblestudante (
   pkEstudante 		INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -93,7 +93,7 @@ CREATE FUNCTION fnNovaChave() RETURNS BINARY(16) DETERMINISTIC
    RETURN UNHEX(REPLACE(UUID(), '-', ''));
 
 DELIMITER //
-CREATE PROCEDURE prCadastrarDocente (OUT varProntuario VARCHAR(9), varNome VARCHAR(50), varEscolaridade VARCHAR(200), varNascimento DATE)
+CREATE PROCEDURE prCadastrarDocente (OUT varProntuario VARCHAR(7), varNome VARCHAR(50), varEscolaridade VARCHAR(200), varNascimento DATE)
 	 BEGIN
 		 START TRANSACTION; -- se tiver só uma query, é preciosismo
 			 INSERT INTO tbldocente(upkDocente, strProntuario, strNome, strEscolaridade, dtNascimento) VALUES (fnNovaChave(), varProntuario, varNome, varEscolaridade, varNascimento);
@@ -105,16 +105,16 @@ CALL prCadastrarDocente ("SP1234567", "ANA MARIA BRAGA", "SUPERIOR", "1923-10-12
 
 
 -- funcionando a partir daqui errado ainda
-CREATE DATABASE dbModelo;
+CREATE DATABASE dbEscola;
 
-USE dbModelo;
+USE dbEscola;
 
 CREATE TABLE tblestudante (
   pkEstudante 		INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
   upkEstudante 		BINARY(16) NOT NULL,
   dcCreated 		DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   dcModified 		DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  strProntuario 	VARCHAR(9) NOT NULL UNIQUE,
+  strProntuario 	VARCHAR(7) NOT NULL UNIQUE,
   strNome 			VARCHAR(50) NOT NULL,
   dtNascimento 		DATE NOT NULL
 ) ENGINE = InnoDB CHARACTER SET = utf8;
@@ -124,7 +124,7 @@ CREATE TABLE tbldocente (
   upkDocente 		BINARY(16) NOT NULL,
   dcCreated 		DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   dcModified 		DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  strProntuario 	VARCHAR(9) NOT NULL UNIQUE,
+  strProntuario 	VARCHAR(7) NOT NULL UNIQUE,
   strNome 			VARCHAR(50) NOT NULL,
   dtNascimento 		DATE NOT NULL,
   strEscolaridade 	VARCHAR(200) NOT NULL
@@ -165,7 +165,7 @@ INSERT INTO tblturma(upkTurma, dtDia, strPeriodo) VALUES (fnNovaChave(), "2019-0
 INSERT INTO tbldisciplina(upkDisciplina, strSigla, fkTurma) VALUES (fnNovaChave(), "DB2A3", 1);
 
 DELIMITER //
-CREATE PROCEDURE prCadastrarDocente (varProntuario VARCHAR(9), varNome VARCHAR(50), varEscolaridade VARCHAR(200), varNascimento DATE)
+CREATE PROCEDURE prCadastrarDocente (varProntuario VARCHAR(7), varNome VARCHAR(50), varEscolaridade VARCHAR(200), varNascimento DATE)
 	 BEGIN
 		 START TRANSACTION; -- se tiver só uma query, é preciosismo
 			 INSERT INTO tbldocente(upkDocente, strProntuario, strNome, strEscolaridade, dtNascimento) VALUES (fnNovaChave(), varProntuario, varNome, varEscolaridade, varNascimento);
@@ -176,7 +176,7 @@ DELIMITER ;
 CALL prCadastrarDocente ("SP1234567", "ANA MARIA BRAGA", "SUPERIOR", "1923-10-12");
 
 DELIMITER //
-CREATE PROCEDURE prCriarEstudante(varProntuario VARCHAR(9), varNome VARCHAR(50), varNascimento DATE)
+CREATE PROCEDURE prCriarEstudante(varProntuario VARCHAR(7), varNome VARCHAR(50), varNascimento DATE)
   BEGIN
     START TRANSACTION;
 	  INSERT INTO tblestudante(upkEstudante, strProntuario, strNome, dtNascimento) VALUES (fnNovaChave(), varProntuario, varNome, dtNascimento);
@@ -187,7 +187,7 @@ DELIMITER ;
 CALL prCriarEstudante("SP3216547", "ANTONIO VIEIRA", "1968-08-27");
 
 DELIMITER //
-CREATE PROCEDURE prAtualizarEstudante(varProntuario VARCHAR(9), varNome VARCHAR(50), varNascimento DATE)
+CREATE PROCEDURE prAtualizarEstudante(varProntuario VARCHAR(7), varNome VARCHAR(50), varNascimento DATE)
   BEGIN
     START TRANSACTION;
 	  UPDATE tblestudante SET strNome = varNome, dtNascimento = varNascimento WHERE strProntuario = varProntuario;
@@ -198,7 +198,7 @@ DELIMITER ;
 CALL prAtualizarEstudante("SP3216547", "ANTONIO VIEIRA DA SILVA", "1968-08-27");
 
 DELIMITER //
-CREATE PROCEDURE prLerEstudante(varProntuario VARCHAR(9))
+CREATE PROCEDURE prLerEstudante(varProntuario VARCHAR(7))
   BEGIN
     START TRANSACTION;
 	  SELECT e.dcCreated, e.dcModified, e.strProntuario, e.strNome, e.dtNascimento FROM tblestudante e WHERE e.strProntuario = varProntuario;
@@ -209,7 +209,7 @@ DELIMITER ;
 CALL prLerEstudante("SP3216547");
 
 DELIMITER //
-CREATE PROCEDURE prDeletarEstudante(varProntuario VARCHAR(9))
+CREATE PROCEDURE prDeletarEstudante(varProntuario VARCHAR(7))
   BEGIN
     START TRANSACTION;
 	  DELETE FROM tblestudante e WHERE e.strProntuario = varProntuario;
