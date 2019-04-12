@@ -105,6 +105,9 @@ CALL prCadastrarDocente ("SP1234567", "ANA MARIA BRAGA", "SUPERIOR", "1923-10-12
 
 
 -- funcionando a partir daqui errado ainda
+SHOW PROCEDURE STATUS LIKE "pr%";
+SHOW DATABASES;
+
 CREATE DATABASE dbEscola;
 
 USE dbEscola;
@@ -135,8 +138,8 @@ CREATE TABLE tblturma (
   upkTurma 		BINARY(16) NOT NULL,
   dcCreated 	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   dcModified 	DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  dtDia 		DATE NOT NULL,
-  strPeriodo 	VARCHAR(15) NOT NULL
+  dtDia 		ENUM('Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'),
+  strPeriodo 	ENUM('Manhã', 'Tarde', 'Noite')
 ) ENGINE = InnoDB CHARACTER SET = utf8;
 
 CREATE TABLE tbldisciplina (
@@ -144,10 +147,19 @@ CREATE TABLE tbldisciplina (
   upkDisciplina 	BINARY(16) NOT NULL,
   dcCreated 		DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   dcModified 		DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  strSigla 			VARCHAR(10) NOT NULL UNIQUE,
-  fkTurma 			INTEGER NOT NULL,
-  FOREIGN KEY (fkTurma) REFERENCES tblturma(pkTurma) 			
+  strSigla 			CHAR(5) NOT NULL UNIQUE,
+  strNome 			VARCHAR(50) NOT NULL
 ) ENGINE = InnoDB CHARACTER SET = utf8;
+
+CREATE TABLE relTurmaDisciplina (
+  pkTurmaDisciplina 	INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  upkTurmaDisciplina 	BINARY(16) NOT NULL,
+  fkTurma 				INTEGER NOT NULL,
+  fkDisciplina 			INTEGER NOT NULL,
+  FOREIGN KEY (fkTurma) REFERENCES tblturma(pkTurma),
+  FOREIGN KEY (fkDisciplina) REFERENCES tbldisciplina(pkDisciplina),
+  UNIQUE(fkTurma)
+) ENGINE = InnoDB;
 
 CREATE FUNCTION fnNovaChave() RETURNS BINARY(16) DETERMINISTIC
    RETURN UNHEX(REPLACE(UUID(), '-', ''));
@@ -160,9 +172,9 @@ INSERT INTO tbldocente(upkDocente, strProntuario, strNome, dtNascimento, strEsco
 INSERT INTO tbldocente(upkDocente, strProntuario, strNome, dtNascimento, strEscolaridade) VALUES (fnNovaChave(), "8529637", "MARIA APARECIDA", "1965-06-24", "DOUTORADO");
 INSERT INTO tbldocente(upkDocente, strProntuario, strNome, dtNascimento, strEscolaridade) VALUES (fnNovaChave(), "1472583", "SILVANA PEREIRA", "1980-06-29", "Especialização");
 
-INSERT INTO tblturma(upkTurma, dtDia, strPeriodo) VALUES (fnNovaChave(), "2019-03-01", "NOTURNO");
+INSERT INTO tblturma(upkTurma, dtDia, strPeriodo) VALUES (fnNovaChave(), "Terça-feira", "Noite");
 
-INSERT INTO tbldisciplina(upkDisciplina, strSigla, fkTurma) VALUES (fnNovaChave(), "DB2A3", 1);
+INSERT INTO tbldisciplina(upkDisciplina, strSigla, strNome) VALUES (fnNovaChave(), "DB2A3", "BANCO DE DADOS II");
 
 /*DELIMITER //
 CREATE PROCEDURE prCadastrarDocente (varProntuario CHAR(7), varNome VARCHAR(50), varEscolaridade VARCHAR(200), varNascimento DATE)
@@ -253,6 +265,17 @@ DELIMITER ;
 CALL prAtualizarDocente("9872243", "THIAGO XAVIER DA SILVA", "1992-03-10", "Bacharelado");
 
 DELIMITER //
+CREATE PROCEDURE prLerDocente(varProntuario CHAR(7))
+  BEGIN
+    START TRANSACTION;
+	  SELECT d.dcCreated, d.dcModified, d.strProntuario, d.strNome, d.dtNascimento FROM tbldocente d WHERE d.strProntuario = varProntuario;
+	COMMIT;
+  END//
+DELIMITER ;
+
+CALL prLerDocente("9872243");
+
+DELIMITER //
 CREATE PROCEDURE prDeletarDocente(varProntuario CHAR(7))
   BEGIN
     START TRANSACTION;
@@ -274,3 +297,88 @@ DELIMITER ;
 
 CALL prListarDocente();
 
+DELIMITER //
+CREATE PROCEDURE prCriarDisciplina(varSigla CHAR(5), varNome VARCHAR(50))
+  BEGIN
+    START TRANSACTION;
+	  INSERT INTO tbldisciplina(upkDisciplina, strSigla, strNome) VALUES (fnNovaChave(), varSigla, varNome);
+	COMMIT;
+  END//
+DELIMITER ;
+
+CALL prCriarDisciplina("SOPA1", "Sistemas Operacionais");
+
+DELIMITER //
+CREATE PROCEDURE prAtualizarDisciplina(varSiglaAtual CHAR(7), varSiglaNova CHAR(50), varNome VARCHAR(50))
+  BEGIN
+    START TRANSACTION;
+	  UPDATE tbldisciplina SET strSigla = varSiglaNova WHERE strSigla = varSiglaAtual AND strNome = varNome;
+	COMMIT;
+  END//
+DELIMITER ;
+
+CALL prAtualizarDisciplina("SOPA1", "A1SOP", "Sistemas Operacionais");
+
+DELIMITER //
+CREATE PROCEDURE prLerDisciplina(varSigla CHAR(5))
+  BEGIN
+    START TRANSACTION;
+	  SELECT d.dcCreated, d.dcModified, d.strSigla, d.strNome FROM tbldisciplina d WHERE d.strSigla = varSigla;
+	COMMIT;
+  END//
+DELIMITER ;
+
+CALL prLerDisciplina("A1SOP");
+
+DELIMITER //
+CREATE PROCEDURE prDeletarDisciplina(varSigla CHAR(5))
+  BEGIN
+    START TRANSACTION;
+	  DELETE FROM tbldisciplina WHERE strSigla = varSigla;
+	COMMIT;
+  END//
+DELIMITER ;
+
+CALL prDeletarDisciplina("A1SOP");
+
+DELIMITER //
+CREATE PROCEDURE prListarDisciplina()
+  BEGIN
+    START TRANSACTION;
+	  SELECT d.dcCreated, d.dcModified, d.strSigla, d.strNome FROM tbldisciplina d;
+	COMMIT;
+  END//
+DELIMITER ;
+
+CALL prListarDisciplina();
+
+
+DELIMITER //
+CREATE PROCEDURE prCriarTurma(varSigla CHAR(5), varDia ENUM('Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'), varPeriodo ENUM('Manhã', 'Tarde', 'Noite'))
+  BEGIN
+    START TRANSACTION;
+	  INSERT INTO tblturma(upkTurma, dtDia, strPeriodo) VALUES (fnNovaChave(), varDia, varPeriodo);
+	  INSERT INTO relTurmaDisciplina(upkTurmaDisciplina, fkTurma, fkDisciplina) SELECT fnNovaChave(), LAST_INSERT_ID(), pkDisciplina FROM tbldisciplina WHERE strSigla = varSigla;
+	COMMIT;
+  END//
+DELIMITER ;
+
+CALL prCriarTurma("DB2A3", "Quarta-feira", "Noite");
+CALL prCriarTurma("DB2A3", "Segunda-feira", "Tarde");
+CALL prCriarTurma("LP1A2", "Segunda-feira", "Manhã");
+CALL prCriarTurma("LG1A1", "Terça-feira", "Tarde");
+
+DELIMITER //
+CREATE PROCEDURE prAtualizarTurma(varSigla CHAR(5), varDiaAtual ENUM('Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'), varPeriodoAtual ENUM('Manhã', 'Tarde', 'Noite'), varDiaNovo ENUM('Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'), varPeriodoNovo ENUM('Manhã', 'Tarde', 'Noite'))
+  BEGIN
+    START TRANSACTION;
+	  UPDATE tblturma SET dtDia = varDiaNovo, strPeriodo = varPeriodoNovo WHERE (SELECT d.strSigla FROM tbldisciplina d, relTurmaDisciplina td WHERE d.pkDisciplina = td.fkDisciplina AND pkTurma = td.fkTurma) = varSigla AND dtDia = varDiaAtual AND strPeriodo = varPeriodoAtual;
+	COMMIT;
+  END//
+DELIMITER ;
+
+CALL prAtualizarTurma("DB2A3", "Sexta-feira", "Manhã", "Quarta-feira", "Manhã");
+CALL prAtualizarTurma("DB2A3", "Segunda-feira", "Tarde", "Quarta-feira", "Manhã");
+CALL prAtualizarTurma("DB2A3", "Quarta-feira", "Manhã", "Segunda-feira", "Tarde");
+
+UPDATE tblturma t, tbldisciplina d, relTurmaDisciplina td SET t.dtDia = varDiaNovo, t.strPeriodo = varPeriodoNovo WHERE d.strSigla = varSigla AND d.strPeriodo = varPeriodoAtual AND 

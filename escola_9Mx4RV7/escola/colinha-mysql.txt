@@ -1,0 +1,77 @@
+﻿-- criar banco de dados compatível com utf-8
+
+CREATE DATABASE nome_do_banco CHARSET='UTF8';
+
+-- ver ajuda de comandos
+
+HELP CREATE;
+HELP CREATE TABLE;
+HELP INSERT;
+
+-- criar uma tabela de entidade, criar um atributo para chave
+-- externa sempre que existir, ex: CPF, placa, núm. de série.
+
+CREATE TABLE nome_da_tabela (
+
+  pkNomeDaTabela INT PRIMARY KEY AUTO_INCREMENT,
+  created DATETIME, modified DATETIME,
+
+  chave_externa CHAR(11), campo1 CHAR(50),
+  campo2 VARCHAR(150), campo_etc BIGINT
+
+) ENGINE='InnoDB' CHARSET='UTF8';
+
+-- criar tabela de relacionamento
+
+CREATE TABLE relacionamento (
+
+  pkRelacionamento INT PRIMARY KEY AUTO_INCREMENT,
+
+  fkTabela_1 INT NOT NULL,
+    CONSTRAINT 'nome_relacionamento_1'
+    FOREIGN KEY ('fkTabela_1')
+    REFERENCES `Tabela1` (`pkTabela_1`),
+
+  fkTabela_2 INT NOT NULL,
+    CONSTRAINT 'nome_relacionamento_2'
+    FOREIGN KEY ('fkTabela_2')
+    REFERENCES `Tabela1` (`pkTabela_2`),
+
+) ENGINE='InnoDB' CHARSET='UTF8';
+
+-- CRUD de entidade
+
+INSERT tabela (created, campo1, campo2, campo_etc) VALUES
+  (NOW(), 'valor1', 'valor2', 'valor_etc);
+
+SELECT * FROM tabela;
+
+UPDATE tabela SER modified=NOW(), campo1='valor1', campo2='valor2',
+  campo_etc='valor_etc' WHERE pkTabela = 5;
+
+DELETE FROM tabela WHERE pkTabela = 7;
+
+-- selecionando chaves de entidades para um relacionamento
+-- usando chaves externas das entidades
+
+SELECT pkTabela_1, pkTabela2 FROM tabela1 JOIN tabela2
+  WHERE chave_externa_1='A' AND chave_externa_2='B';
+
+-- inserindo um relacionamento com uso de chaves externas
+
+INSERT relacionamento (fkTabela_1,fkTabela_2)
+  SELECT pkTabela_1, pkTabela_2 FROM tabela1 JOIN tabela2
+    WHERE chave_externa_1='A' AND chave_externa_2='B';
+
+-- fazer um dump de um banco de dados usando caminho completo
+-- (com referência ao Lab 14 do IFSP em 28-09-2017)
+
+D:\>"C:\Program Files\MySQL\MySQL Server 5.6\bin\mysqldump.exe" nome_do_banco
+    -u root -p > D:\backups\dump.sql
+
+-- restaurar um dump para um banco de dados usando caminho completo
+-- com um banco pré existente no SGBD
+-- (com referência ao Lab 14 do IFSP em 28-09-2017)
+
+D:\>"C:\Program Files\MySQL\MySQL Server 5.6\bin\mysql.exe" nome_do_banco
+    -u root -p < D:\backups\dump.sql
