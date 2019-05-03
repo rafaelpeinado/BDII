@@ -1,1 +1,1 @@
-"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe" dbrevisao -uroot -paluno > "D:\ARQUIVOS DOS ALUNOS\rafaelpeinado\bkprevisao.sql"
+"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe" dbEscola -uroot --routines -paluno > "D:\ARQUIVOS DOS ALUNOS\Rafael\BDII\bkpEscola.sql"
