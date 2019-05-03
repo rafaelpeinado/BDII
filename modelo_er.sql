@@ -372,7 +372,12 @@ DELIMITER //
 CREATE PROCEDURE prAtualizarTurma(varSigla CHAR(5), varDiaAtual ENUM('Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'), varPeriodoAtual ENUM('Manhã', 'Tarde', 'Noite'), varDiaNovo ENUM('Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'), varPeriodoNovo ENUM('Manhã', 'Tarde', 'Noite'))
   BEGIN
     START TRANSACTION;
-	  UPDATE tblturma SET dtDia = varDiaNovo, strPeriodo = varPeriodoNovo WHERE (SELECT d.strSigla FROM tbldisciplina d, relTurmaDisciplina td WHERE d.pkDisciplina = td.fkDisciplina AND pkTurma = td.fkTurma) = varSigla AND dtDia = varDiaAtual AND strPeriodo = varPeriodoAtual;
+	  SET @atualizar = (SELECT t.pkTurma FROM tbldisciplina d
+	  INNER JOIN relTurmaDisciplina td ON d.pkDisciplina = td.fkDisciplina
+	  INNER JOIN tblturma ON t.pkTurma = td.fkTurma
+	  WHERE d.strSigla = varSigla AND t.dtDia = varDiaAtual AND t.strPeriodo = varPeriodoAtual);
+	  
+	  UPDATE tblturma SET dtDia = varDiaNovo, strPeriodo = varPeriodoNovo WHERE pkTurma = atualizar;
 	COMMIT;
   END//
 DELIMITER ;
